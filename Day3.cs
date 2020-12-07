@@ -348,24 +348,36 @@ namespace advent_of_code_2020_c_
 
         public static char TreeToken = '#';
 
-        public static Coordinate MovingPattern = new Coordinate(3, 1);
+        public static Coordinate Part1MovingPattern = new Coordinate(3, 1);
+
+        private static Coordinate[] Part2MovingPatterns = new Coordinate[] {
+            new Coordinate(1, 1),
+            new Coordinate(3, 1),
+            new Coordinate(5, 1),
+            new Coordinate(7, 1),
+            new Coordinate(1, 2),
+        };
 
         // Use mod to create an infinite repetition horizontally
         private static bool IsTree(Coordinate coordinate) => puzzleInput[coordinate.y][coordinate.x % puzzleInput[0].Length] == TreeToken;
 
-        private static IEnumerable<Coordinate> GenerateCoordinates(string[] input)
+        private static IEnumerable<Coordinate> GenerateCoordinates(string[] input, Coordinate movingPattern)
         {
             var current = new Coordinate(0, 0);
             while (current.y < (input.Length - 1))
             {
-                current = current.Add(MovingPattern);
+                current = current.Add(movingPattern);
                 yield return current;
             }
         }
 
         public static void Run()
         {
-            Console.WriteLine($"Day 3 Part 1 answer: {GenerateCoordinates(puzzleInput).Count(IsTree)}");
+            Console.WriteLine($"Day 3 Part 1 answer: {GenerateCoordinates(puzzleInput, Part1MovingPattern).Count(IsTree)}");
+
+            var part2Visits = Part2MovingPatterns.Select(pattern => GenerateCoordinates(puzzleInput, pattern).Count(IsTree))
+                .Aggregate((x, y) => x * y);
+            Console.WriteLine($"Day 3 Part 2 answer: {part2Visits}");
         }
     }
 }
