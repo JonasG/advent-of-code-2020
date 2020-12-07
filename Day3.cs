@@ -356,7 +356,7 @@ namespace advent_of_code_2020_c_
         private static IEnumerable<Coordinate> GenerateCoordinates(string[] input)
         {
             var current = new Coordinate(0, 0);
-            while (current.y < (puzzleInput.Length - 1))
+            while (current.y < (input.Length - 1))
             {
                 current = current.Add(MovingPattern);
                 yield return current;
