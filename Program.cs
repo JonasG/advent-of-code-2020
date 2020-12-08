@@ -10,6 +10,7 @@ namespace advent_of_code_2020_c_
             Day1.Run();
             Day2.Run();
             Day3.Run();
+            Day4.Run();
         }
     }
 }
