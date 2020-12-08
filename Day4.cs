@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace advent_of_code_2020_c_
 {
@@ -1010,21 +1011,68 @@ namespace advent_of_code_2020_c_
 
         private const string Separator = "--SEPARATOR--";
 
-        private static bool ValidPassport(string line)
+        readonly struct Passport
         {
-            var fields = line.Split(" ").Select(str => str.Split(":")[0]);
-            var requiredFields = new string[] { "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" };
-            return requiredFields.All(str => fields.Contains(str));
+            private readonly IDictionary<string, string> fields;
+
+            private readonly string[] requiredFields;
+
+            public Passport(string line)
+            {
+                fields = line.Split(" ")
+                    .Where(str => !string.IsNullOrWhiteSpace(str))
+                    .ToDictionary(item => item.Split(":")[0], item => item.Split(":")[1]);
+                 requiredFields = new string[] { "byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid" };
+            }
+
+            public bool HasAllRequiredFields()
+            {
+                var keys = fields.Keys;
+                return requiredFields.All(str => keys.Contains(str));
+            }
+
+            private bool ValidateHeight(string hgt)
+            {
+                if (hgt.EndsWith("cm") && hgt.Length == 5 && int.TryParse(hgt.Substring(0, 3), out int heightCm))
+                {
+                    return (150 <= heightCm && heightCm <= 193);
+                }
+                else if (hgt.EndsWith("in") && hgt.Length == 4 && int.TryParse(hgt.Substring(0, 2), out int heightIn))
+                {
+                    return (59 <= heightIn && heightIn <= 76);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            private bool ValidateHairColor(string hcl) => new Regex(@"#[0-9a-f]{6}$").IsMatch(hcl);
+
+            private bool ValidateEyeColor(string ecl) => new string[] { "amb", "blu", "brn", "gry", "grn", "hzl", "oth" }.Contains(ecl);
+
+            public bool AreFieldsValid()
+            {
+                return (int.TryParse(fields["byr"], out int birthYear) && (1920 <= birthYear && birthYear <= 2002)
+                    && int.TryParse(fields["iyr"], out int issuerYear) && (2010 <= issuerYear && issuerYear <= 2020)
+                    && int.TryParse(fields["eyr"], out int expirationYear) && (2020 <= expirationYear && expirationYear <= 2030)
+                    && ValidateHeight(fields["hgt"])
+                    && ValidateHairColor(fields["hcl"])
+                    && ValidateEyeColor(fields["ecl"])
+                    && fields["pid"].Length == 9 && int.TryParse(fields["pid"], out int pid));
+            }
         }
+
+        private static bool ValidPassportPart1(Passport passportCandidate) => passportCandidate.HasAllRequiredFields();
 
         public static void Run()
         {
-            var validPassportCount = string.Join(" ", puzzleInput.Select(s => string.IsNullOrWhiteSpace(s) ? Separator : s))
+            var passwordCandidates = string.Join(" ", puzzleInput.Select(s => string.IsNullOrWhiteSpace(s) ? Separator : s))
                 .Split(Separator)
-                .Count(ValidPassport);
+                .Select(str => new Passport(str));
 
-            Console.WriteLine($"Day 4 Part 1 answer: {validPassportCount}");
-            Console.WriteLine($"Day 4 Part 2 answer: TBD");
+            Console.WriteLine($"Day 4 Part 1 answer: {passwordCandidates.Count(p => p.HasAllRequiredFields())}");
+            Console.WriteLine($"Day 4 Part 2 answer: {passwordCandidates.Count(p => p.HasAllRequiredFields() && p.AreFieldsValid())}");
         }
     }
 }
